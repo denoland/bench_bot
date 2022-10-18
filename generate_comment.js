@@ -4,7 +4,6 @@ const repo = Deno.args[0] || "littledivy/equinix-metal-test";
 const pullNumber = Deno.args[1] || "1";
 const token = Deno.env.get("GITHUB_TOKEN");
 const equinixToken = Deno.env.get("EQUINIX_TOKEN");
-const equinixMarketId = Deno.get.env("EQUINIX_MARKET_ID");
 
 const osDir = Deno.build.os === "linux" ? "linux64" : "mac";
 const hyperfine = `equinix-metal-test/third_party/prebuilt/${osDir}/hyperfine`;
