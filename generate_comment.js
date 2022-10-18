@@ -3,7 +3,7 @@ import "https://deno.land/std/dotenv/load.ts";
 const repo = Deno.args[0] || "denoland/deno";
 const pullNumber = Deno.args[1];
 const artifactID = Deno.args[2];
-const artifactName = `deno-${prNumber}`;
+const artifactName = `deno-${pullNumber}`;
 
 const token = Deno.env.get("GITHUB_TOKEN");
 const equinixToken = Deno.env.get("EQUINIX_TOKEN");
