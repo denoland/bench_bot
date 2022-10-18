@@ -36,7 +36,7 @@ async function createSpotMarketRequest(prNumber) {
 
 function createBenchScript(prNumber) {
     return `#!/bin/bash
-apt-get install unzip git
+apt-get install -y unzip git
 export PATH=$HOME/.deno/bin:$PATH
 git clone --depth=1 --recurse-submodules https://github.com/littledivy/equinix-metal-test
 sh equinix-metal-test/install_deno.sh

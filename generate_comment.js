@@ -5,7 +5,7 @@ const pullNumber = Deno.args[1] || "1";
 const token = Deno.env.get("GITHUB_TOKEN");
 
 const osDir = Deno.build.os === "linux" ? "linux64" : "mac";
-const hyperfine = `third_party/prebuilt/${osDir}/hyperfine`;
+const hyperfine = `equinix-metal-test/third_party/prebuilt/${osDir}/hyperfine`;
 
 async function generateComment() {
   const comment = {
