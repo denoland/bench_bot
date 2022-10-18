@@ -48,13 +48,13 @@ async function getSpotMarketRequest(id) {
   return result.spot_market_requests.find((r) => r.id === id);
 }
 
-function createBenchScript(id, prNumber) {
+function createBenchScript(prNumber) {
   return `#!/bin/bash
 apt-get install -y unzip git
 export PATH=$HOME/.deno/bin:$PATH
 git clone --depth=1 --recurse-submodules https://github.com/littledivy/equinix-metal-test
 sh equinix-metal-test/install_deno.sh
-GITHUB_TOKEN=${githubToken} EQUINIX_MARKET_ID=${id} EQUINIX_TOKEN=${equinixToken} deno run -A --unstable equinix-metal-test/generate_comment.js littledivy/equinix-metal-test ${prNumber} 
+GITHUB_TOKEN=${githubToken} EQUINIX_TOKEN=${equinixToken} deno run -A --unstable equinix-metal-test/generate_comment.js littledivy/equinix-metal-test ${prNumber} 
 `;
 }
 
