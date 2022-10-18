@@ -3,6 +3,8 @@ import "https://deno.land/std/dotenv/load.ts";
 const repo = Deno.args[0] || "littledivy/equinix-metal-test";
 const pullNumber = Deno.args[1] || "1";
 const token = Deno.env.get("GITHUB_TOKEN");
+const equinixToken = Deno.env.get("EQUINIX_TOKEN");
+const equinixMarketId = Deno.get.env("EQUINIX_MARKET_ID");
 
 const osDir = Deno.build.os === "linux" ? "linux64" : "mac";
 const hyperfine = `equinix-metal-test/third_party/prebuilt/${osDir}/hyperfine`;
@@ -25,6 +27,27 @@ export async function generateComment(body, pullNumber) {
   return response.json();
 }
 
+async function getInstanceMetadata() {
+  const resp = await fetch(
+    `https://metadata.platformequinix.com/metadata`,
+  );
+  return resp.json();
+}
+
+async function terminateInstance() {
+  const { id } = await getInstanceMetadata();
+  const resp = await fetch(
+    `https://api.equinix.com/metal/v1/devices/${id}`,
+    {
+      method: "DELETE",
+      headers: {
+        "X-Auth-Token": equinixToken,
+      },
+    },
+  );
+  return resp.json();
+}
+
 async function runHyperfine() {
   const result = await Deno.run({
     cmd: [
@@ -40,7 +63,11 @@ async function runHyperfine() {
 }
 
 if (import.meta.main) {
-  await runHyperfine();
-  const body = await Deno.readTextFile("benchmark.md");
-  console.log(await generateComment(body, pullNumber));
+  try {
+    await runHyperfine();
+    const body = await Deno.readTextFile("benchmark.md");
+    console.log(await generateComment(body, pullNumber));
+  } finally {
+    console.log(await terminateInstance());
+  }
 }

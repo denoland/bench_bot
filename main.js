@@ -48,13 +48,13 @@ async function getSpotMarketRequest(id) {
   return result.spot_market_requests.find((r) => r.id === id);
 }
 
-function createBenchScript(prNumber) {
+function createBenchScript(id, prNumber) {
   return `#!/bin/bash
 apt-get install -y unzip git
 export PATH=$HOME/.deno/bin:$PATH
 git clone --depth=1 --recurse-submodules https://github.com/littledivy/equinix-metal-test
 sh equinix-metal-test/install_deno.sh
-GITHUB_TOKEN=${githubToken} deno run -A --unstable equinix-metal-test/generate_comment.js littledivy/equinix-metal-test ${prNumber} 
+GITHUB_TOKEN=${githubToken} EQUINIX_MARKET_ID=${id} EQUINIX_TOKEN=${equinixToken} deno run -A --unstable equinix-metal-test/generate_comment.js littledivy/equinix-metal-test ${prNumber} 
 `;
 }
 
@@ -136,10 +136,11 @@ async function handler(req) {
             let metro = res.metro
               ? `metro: ${res.metro.name} (${res.metro.country})`
               : "unknown";
+            const percentage = `${
+              Math.round(res.provisioning_percentage || 100)
+            }%`;
             await generateComment(
-              `✅ Device provisioned ${
-                res.provisioning_percentage || "100%"
-              }\n\n${metro}`,
+              `✅ Device provisioned ${percentage}\n\n${metro}`,
               id,
             );
           } else {
