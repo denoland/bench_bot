@@ -38,7 +38,7 @@ async function downloadArtifact() {
       },
     },
   );
-  const location = redirected.headers.get("Location");
+  const location = redirected.url;
   // curl
   const result = await Deno.run({
     cmd: [
@@ -59,6 +59,12 @@ async function downloadArtifact() {
   });
   await unzip.status();
   unzip.close();
+  // chmod
+  const chmod = await Deno.run({
+    cmd: ["chmod", "+x", "./deno"],
+  });
+  await chmod.status();
+  chmod.close();
 }
 
 async function getInstanceMetadata() {
@@ -90,7 +96,7 @@ async function runHyperfine() {
       "--export-markdown",
       "benchmark.md",
       "deno run equinix-metal-test/nop.js",
-      `./${artifactName} run equinix-metal-test/nop.js`,
+      `./deno run equinix-metal-test/nop.js`,
     ],
   });
   await result.status();
