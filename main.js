@@ -2,6 +2,7 @@ import "https://deno.land/std/dotenv/load.ts";
 import { serve } from "https://deno.land/std/http/server.ts";
 import { router } from "https://deno.land/x/rutt/mod.ts";
 import { encode } from "https://deno.land/std/encoding/hex.ts";
+import { generateComment } from "./generate_comment.js";
 
 const webhookSecret = Deno.env.get("WEBHOOK_SECRET");
 const equinixProjectId = Deno.env.get("EQUINIX_PROJECT_ID");
@@ -35,7 +36,7 @@ async function createSpotMarketRequest(prNumber) {
 }
 
 function createBenchScript(prNumber) {
-    return `#!/bin/bash
+  return `#!/bin/bash
 apt-get install -y unzip git
 export PATH=$HOME/.deno/bin:$PATH
 git clone --depth=1 --recurse-submodules https://github.com/littledivy/equinix-metal-test
@@ -44,7 +45,6 @@ GITHUB_TOKEN=${githubToken} deno run -A --unstable equinix-metal-test/generate_c
 `;
 }
 
-const MAGIC_WORDS = "+bench";
 const enc = new TextEncoder();
 const dec = new TextDecoder();
 
@@ -79,14 +79,32 @@ async function handler(req) {
     "issue_comment": async (event) => {
       if (event.action === "created") {
         const id = event.issue.number;
-        const comment = event.comment.body;
-        const association = event.comment.author_association;
+        const comment = event.comment.body.trim();
+        const authorized = authorizedRoles.includes(
+          event.comment.author_association,
+        );
         if (
-          authorizedRoles.includes(association) &&
-          comment.trim() == MAGIC_WORDS
+          authorized &&
+          comment == "+bench"
         ) {
           console.log("Creating spot market request");
-          console.log(await createSpotMarketRequest(id));
+          const request = await createSpotMarketRequest(id);
+          if (request.errors) {
+            await generateComment(`❌ ${request.errors[0]}`);
+            return;
+          }
+          await generateComment(
+            `⏳ Provisioning metal.\n\n id: \`${request.id}\`\n metro: \`${
+              request.metro ?? "unknown"
+            }\`\n\n<sup><sub> Use \`+bench status\` for status </sup></sub>`,
+          );
+        }
+
+        if (
+          authorized &&
+          comment == "+bench status"
+        ) {
+          // TODO
         }
       }
     },
