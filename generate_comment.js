@@ -32,7 +32,7 @@ async function runHyperfine() {
       "--export-markdown",
       "benchmark.md",
       "deno run --allow-net --allow-env nop.js",
-      "node nop.js",
+      // "node nop.js",
     ],
   });
   await result.status();

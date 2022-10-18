@@ -38,8 +38,9 @@ function createBenchScript(prNumber) {
     return `#!/bin/bash
 apt-get install unzip git
 curl -fsSL https://deno.land/install.sh | sh
+export PATH=$HOME/.deno/bin:$PATH
 git clone --depth=1 --recurse-submodules https://github.com/littledivy/equinix-metal-test
-GITHUB_TOKEN=${githubToken} ~/.deno/bin/deno run -A --unstable equinix-metal-test/generate_comment.js littledivy/equinix-metal-test ${prNumber} 
+GITHUB_TOKEN=${githubToken} deno run -A --unstable equinix-metal-test/generate_comment.js littledivy/equinix-metal-test ${prNumber} 
 `;
 }
 
