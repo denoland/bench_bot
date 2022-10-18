@@ -35,6 +35,19 @@ async function createSpotMarketRequest(prNumber) {
   return resp.json();
 }
 
+async function getSpotMarketRequest(id) {
+  const resp = await fetch(
+    `https://api.equinix.com/metal/v1/projects/${equinixProjectId}/spot-market-requests`,
+    {
+      headers: {
+        "X-Auth-Token": equinixToken,
+      },
+    },
+  );
+  const result = await resp.json();
+  return result.spot_market_requests.find((r) => r.id === id);
+}
+
 function createBenchScript(prNumber) {
   return `#!/bin/bash
 apt-get install -y unzip git
@@ -93,20 +106,48 @@ async function handler(req) {
             await generateComment(`❌ ${request.errors[0]}`, id);
             return;
           }
-          console.log(req)
           await generateComment(
-            `⏳ Provisioning metal.\n\n id: \`${request.id}\`\n metro: \`${
+            `⏳ Provisioning metal...\n\n id: \`${request.id}\`\n metro: \`${
               request.metro ?? "unknown"
-            }\`\n\n<sup><sub> Use \`+bench status\` for status </sup></sub>`,
+            }\`\n\n<sup><sub> Use \`+bench status <id>\` for status </sup></sub>`,
             id,
           );
         }
 
         if (
           authorized &&
-          comment == "+bench status"
+          comment.startsWith("+bench status")
         ) {
-          // TODO
+          const reqid = comment.split(" ")[2];
+          if (!reqid) {
+            return;
+          }
+
+          const request = await getSpotMarketRequest(reqid.trim());
+          if (request.errors || request.error) return;
+          const device = request.devices[0];
+          if (device) {
+            const d = await fetch(`https://api.equinix.com${device.href}`, {
+              headers: {
+                "X-Auth-Token": equinixToken,
+              },
+            });
+            const res = await d.json();
+            let metro = res.metro
+              ? `metro: ${res.metro.name} (${res.metro.country})`
+              : "unknown";
+            await generateComment(
+              `✅ Device provisioned ${
+                res.provisioning_percentage || "100%"
+              }\n\n${metro}`,
+              id,
+            );
+          } else {
+            await generateComment(
+              `⏳ No device provisioned yet\n\ncreated_at: \`${request.created_at}\``,
+              id,
+            );
+          }
         }
       }
     },
