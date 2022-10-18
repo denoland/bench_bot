@@ -34,7 +34,7 @@ async function downloadArtifact() {
     `https://api.github.com/repos/denoland/deno/actions/artifacts/${artifactID}/zip`,
     {
       headers: {
-        "Authorization": `token ${githubToken}`,
+        "Authorization": `token ${token}`,
       },
     },
   );
