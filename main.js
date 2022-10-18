@@ -22,7 +22,7 @@ async function createSpotMarketRequest(prNumber) {
         "devices_min": 1,
         "max_bid_price": 0.2,
         "instance_parameters": {
-          "hostname": "divy",
+          "hostname": "divy2",
           "plan": "m3.small.x86",
           "operating_system": "ubuntu_22_04",
           "userdata": createBenchScript(prNumber),
@@ -37,9 +37,9 @@ async function createSpotMarketRequest(prNumber) {
 function createBenchScript(prNumber) {
     return `#!/bin/bash
 apt-get install unzip git
-curl -fsSL https://deno.land/install.sh | sh
 export PATH=$HOME/.deno/bin:$PATH
 git clone --depth=1 --recurse-submodules https://github.com/littledivy/equinix-metal-test
+sh equinix-metal-test/install_deno.sh
 GITHUB_TOKEN=${githubToken} deno run -A --unstable equinix-metal-test/generate_comment.js littledivy/equinix-metal-test ${prNumber} 
 `;
 }
