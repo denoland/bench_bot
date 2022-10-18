@@ -36,7 +36,7 @@ async function getInstanceMetadata() {
 async function terminateInstance() {
   const { id } = await getInstanceMetadata();
   const resp = await fetch(
-    `https://api.equinix.com/metal/v1/devices/${id}`,
+    `https://api.equinix.com/metal/v1/devices/${id}?force_delete=true`,
     {
       method: "DELETE",
       headers: {
@@ -44,7 +44,7 @@ async function terminateInstance() {
       },
     },
   );
-  return resp.json();
+  return resp.text();
 }
 
 async function runHyperfine() {
