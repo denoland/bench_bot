@@ -90,7 +90,7 @@ async function runHyperfine() {
       "--export-markdown",
       "benchmark.md",
       "deno run equinix-metal-test/nop.js",
-      `${artifactName} run equinix-metal-test/nop.js`,
+      `./${artifactName} run equinix-metal-test/nop.js`,
     ],
   });
   await result.status();
