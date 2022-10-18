@@ -90,13 +90,15 @@ async function handler(req) {
           console.log("Creating spot market request");
           const request = await createSpotMarketRequest(id);
           if (request.errors) {
-            await generateComment(`❌ ${request.errors[0]}`);
+            await generateComment(`❌ ${request.errors[0]}`, id);
             return;
           }
+          console.log(req)
           await generateComment(
             `⏳ Provisioning metal.\n\n id: \`${request.id}\`\n metro: \`${
               request.metro ?? "unknown"
             }\`\n\n<sup><sub> Use \`+bench status\` for status </sup></sub>`,
+            id,
           );
         }
 

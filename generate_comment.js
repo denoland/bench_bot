@@ -7,7 +7,7 @@ const token = Deno.env.get("GITHUB_TOKEN");
 const osDir = Deno.build.os === "linux" ? "linux64" : "mac";
 const hyperfine = `equinix-metal-test/third_party/prebuilt/${osDir}/hyperfine`;
 
-export async function generateComment(body) {
+export async function generateComment(body, pullNumber) {
   const comment = {
     body,
   };
@@ -42,5 +42,5 @@ async function runHyperfine() {
 if (import.meta.main) {
   await runHyperfine();
   const body = await Deno.readTextFile("benchmark.md");
-  console.log(await generateComment(body));
+  console.log(await generateComment(body, pullNumber));
 }
