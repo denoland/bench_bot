@@ -2,6 +2,8 @@ import "https://deno.land/std/dotenv/load.ts";
 
 const repo = Deno.args[0] || "denoland/deno";
 const pullNumber = Deno.args[1];
+const artifactID = Deno.args[2];
+const artifactName = `deno-${prNumber}`;
 
 const token = Deno.env.get("GITHUB_TOKEN");
 const equinixToken = Deno.env.get("EQUINIX_TOKEN");
@@ -25,6 +27,38 @@ export async function generateComment(body, pullNumber) {
     },
   );
   return response.json();
+}
+
+async function downloadArtifact() {
+  const redirected = await fetch(
+    `https://api.github.com/repos/denoland/deno/actions/artifacts/${artifactID}/zip`,
+    {
+      headers: {
+        "Authorization": `token ${githubToken}`,
+      },
+    },
+  );
+  const location = redirected.headers.get("Location");
+  // curl
+  const result = await Deno.run({
+    cmd: [
+      "curl",
+      "-L",
+      "-H",
+      `Authorization: token ${token}`,
+      "-o",
+      "artifact.zip",
+      location,
+    ],
+  });
+  await result.status();
+  result.close();
+  // unzip
+  const unzip = await Deno.run({
+    cmd: ["unzip", "artifact.zip"],
+  });
+  await unzip.status();
+  unzip.close();
 }
 
 async function getInstanceMetadata() {
@@ -55,7 +89,8 @@ async function runHyperfine() {
       "--show-output",
       "--export-markdown",
       "benchmark.md",
-      "deno run --allow-net --allow-env equinix-metal-test/nop.js",
+      "deno run equinix-metal-test/nop.js",
+      `${artifactName} run equinix-metal-test/nop.js`,
     ],
   });
   await result.status();
@@ -63,6 +98,7 @@ async function runHyperfine() {
 
 if (import.meta.main) {
   try {
+    await downloadArtifact();
     await runHyperfine();
     const body = await Deno.readTextFile("benchmark.md");
     console.log(await generateComment(body, pullNumber));

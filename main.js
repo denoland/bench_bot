@@ -10,6 +10,7 @@ const equinixToken = Deno.env.get("EQUINIX_TOKEN");
 const githubToken = Deno.env.get("GITHUB_TOKEN");
 
 async function createSpotMarketRequest(prNumber) {
+  const artifactId = await getArtifactId(prNumber);
   const resp = await fetch(
     `https://api.equinix.com/metal/v1/projects/${equinixProjectId}/spot-market-requests`,
     {
@@ -26,7 +27,7 @@ async function createSpotMarketRequest(prNumber) {
           "hostname": "divy2",
           "plan": "m3.small.x86",
           "operating_system": "ubuntu_22_04",
-          "userdata": createBenchScript(prNumber),
+          "userdata": createBenchScript(prNumber, artifactId),
           // "metro": "fr",
         },
       }),
@@ -48,13 +49,28 @@ async function getSpotMarketRequest(id) {
   return result.spot_market_requests.find((r) => r.id === id);
 }
 
-function createBenchScript(prNumber) {
+async function getArtifactId(prNumber) {
+  const artifactName = `deno-${prNumber}`;
+  const resp = await fetch(
+    `https://api.github.com/repos/denoland/deno/actions/artifacts?per_page=100`,
+    {
+      headers: {
+        "Authorization": `token ${githubToken}`,
+      },
+    },
+  );
+  const result = await resp.json();
+  const artifact = result.artifacts.find((a) => a.name === artifactName);
+  return artifact.id;
+}
+
+function createBenchScript(prNumber, artifactId) {
   return `#!/bin/bash
 apt-get install -y unzip git
 export PATH=$HOME/.deno/bin:$PATH
 git clone --depth=1 --recurse-submodules https://github.com/littledivy/equinix-metal-test
 sh equinix-metal-test/install_deno.sh
-GITHUB_TOKEN=${githubToken} EQUINIX_TOKEN=${equinixToken} deno run -A --unstable equinix-metal-test/generate_comment.js denoland/deno ${prNumber} 
+GITHUB_TOKEN=${githubToken} EQUINIX_TOKEN=${equinixToken} deno run -A --unstable equinix-metal-test/generate_comment.js denoland/deno ${prNumber} ${artifactId}
 `;
 }
 
