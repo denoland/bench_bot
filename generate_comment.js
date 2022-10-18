@@ -29,9 +29,10 @@ async function runHyperfine() {
   const result = await Deno.run({
     cmd: [
       hyperfine,
+      "--show-output",
       "--export-markdown",
       "benchmark.md",
-      "deno run --allow-net --allow-env nop.js",
+      "deno run --allow-net --allow-env equinix-metal-test/nop.js",
       // "node nop.js",
     ],
   });
