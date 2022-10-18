@@ -2,7 +2,6 @@ import "https://deno.land/std/dotenv/load.ts";
 
 const repo = Deno.args[0] || "denoland/deno";
 const pullNumber = Deno.args[1];
-if (!pullNumber) throw new Error("pullNumber is required");
 
 const token = Deno.env.get("GITHUB_TOKEN");
 const equinixToken = Deno.env.get("EQUINIX_TOKEN");
