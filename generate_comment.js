@@ -1,7 +1,9 @@
 import "https://deno.land/std/dotenv/load.ts";
 
-const repo = Deno.args[0] || "littledivy/equinix-metal-test";
-const pullNumber = Deno.args[1] || "1";
+const repo = Deno.args[0] || "denoland/deno";
+const pullNumber = Deno.args[1];
+if (!pullNumber) throw new Error("pullNumber is required");
+
 const token = Deno.env.get("GITHUB_TOKEN");
 const equinixToken = Deno.env.get("EQUINIX_TOKEN");
 
@@ -55,7 +57,6 @@ async function runHyperfine() {
       "--export-markdown",
       "benchmark.md",
       "deno run --allow-net --allow-env equinix-metal-test/nop.js",
-      // "node nop.js",
     ],
   });
   await result.status();
