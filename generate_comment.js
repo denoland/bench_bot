@@ -92,6 +92,8 @@ async function runHyperfine() {
   const result = await Deno.run({
     cmd: [
       hyperfine,
+      "--warmup",
+      "5",
       "--show-output",
       "--export-markdown",
       "benchmark.md",
