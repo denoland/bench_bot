@@ -25,9 +25,9 @@ export function svgChart(means) {
   return body;
 }
 
-export async function generateComment(means, pullNumber) {
+export async function generateComment(body, pullNumber) {
   const comment = {
-    body: svgChart(means),
+    body,
   };
   const response = await fetch(
     `https://api.github.com/repos/${repo}/issues/${pullNumber}/comments`,
@@ -122,7 +122,7 @@ async function hyperfine() {
   await runHyperfine();
   const { results } = JSON.stringify(await Deno.readTextFile("hyperfine.json"));
   const means = { deno: results[0].mean, "deno-pr": results[1].mean };
-  console.log(await generateComment(means, pullNumber));
+  console.log(await generateComment(svgChart(means), pullNumber));
 }
 
 async function wrk() {
