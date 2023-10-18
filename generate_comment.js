@@ -121,7 +121,7 @@ async function runHyperfine() {
 async function hyperfine() {
   await runHyperfine();
   const { results } = JSON.stringify(await Deno.readTextFile("hyperfine.json"));
-  const means = { deno: results[0].mean, "deno-pr": results[1].mean };
+  const means = { "deno-main": results[0].mean, "deno-pr": results[1].mean };
   console.log(await generateComment(svgChart(means), pullNumber));
 }
 
@@ -152,6 +152,8 @@ if (import.meta.main) {
     await downloadArtifact();
     const run = benchmarkTypes[benchmarkType];
     if (run) run();
+  } catch (e) {
+    generateComment(e.toString(), pullNumber);
   } finally {
     console.log(await terminateInstance());
   }
