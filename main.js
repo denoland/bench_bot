@@ -124,7 +124,7 @@ async function handler(req) {
           comment.startsWith("+bench") &&
           !comment.startsWith("+bench status")
         ) {
-          const args = comment.split("+bench")[1];
+          const args = comment.split(" ")[1];
           const type_ = benchmarkType(args);
           console.log("Creating spot market request");
           const request = await createSpotMarketRequest(id, type_);
