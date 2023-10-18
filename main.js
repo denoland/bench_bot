@@ -9,7 +9,7 @@ const equinixProjectId = Deno.env.get("EQUINIX_PROJECT_ID");
 const equinixToken = Deno.env.get("EQUINIX_TOKEN");
 const githubToken = Deno.env.get("GITHUB_TOKEN");
 
-async function createSpotMarketRequest(prNumber) {
+async function createSpotMarketRequest(prNumber, type_) {
   const artifactId = await getArtifactId(prNumber);
   const resp = await fetch(
     `https://api.equinix.com/metal/v1/projects/${equinixProjectId}/spot-market-requests`,
@@ -27,8 +27,7 @@ async function createSpotMarketRequest(prNumber) {
           "hostname": "divy2",
           "plan": "m3.small.x86",
           "operating_system": "ubuntu_22_04",
-          "userdata": createBenchScript(prNumber, artifactId),
-          // "metro": "fr",
+          "userdata": createBenchScript(prNumber, artifactId, type_),
         },
       }),
     },
@@ -61,16 +60,18 @@ async function getArtifactId(prNumber) {
   );
   const result = await resp.json();
   const artifact = result.artifacts.find((a) => a.name === artifactName);
+  if (!artifact) console.error("CI pending or PR marked as draft");
   return artifact.id;
 }
 
-function createBenchScript(prNumber, artifactId) {
+function createBenchScript(prNumber, artifactId, type_) {
   return `#!/bin/bash
 apt-get install -y unzip git
 export PATH=$HOME/.deno/bin:$PATH
 git clone --depth=1 --recurse-submodules https://github.com/littledivy/equinix-metal-test
 sh equinix-metal-test/install_deno.sh
-GITHUB_TOKEN=${githubToken} EQUINIX_TOKEN=${equinixToken} deno run -A --unstable equinix-metal-test/generate_comment.js denoland/deno ${prNumber} ${artifactId}
+deno upgrade --canary
+GITHUB_TOKEN=${githubToken} EQUINIX_TOKEN=${equinixToken} deno run -A --unstable equinix-metal-test/generate_comment.js denoland/deno ${prNumber} ${artifactId} ${type_}
 `;
 }
 
@@ -88,6 +89,12 @@ const key = await crypto.subtle.importKey(
 async function sign(data) {
   const s = await crypto.subtle.sign("HMAC", key, new Uint8Array(data));
   return `sha1=${dec.decode(encode(new Uint8Array(s)))}`;
+}
+
+function benchmarkType(arg) {
+  if (!arg) return "hyperfine";
+  arg = arg.trim();
+  return arg;
 }
 
 const authorizedRoles = ["OWNER", "MEMBER"];
@@ -114,10 +121,13 @@ async function handler(req) {
         );
         if (
           authorized &&
-          comment == "+bench"
+          comment.startsWith("+bench") &&
+          !comment.startsWith("+bench status")
         ) {
+          const args = comment.split("+bench")[1];
+          const type_ = benchmarkType(args);
           console.log("Creating spot market request");
-          const request = await createSpotMarketRequest(id);
+          const request = await createSpotMarketRequest(id, type_);
           if (request.errors) {
             await generateComment(`❌ ${request.errors[0]}`, id);
             return;
