@@ -152,8 +152,9 @@ if (import.meta.main) {
     await downloadArtifact();
     const run = benchmarkTypes[benchmarkType];
     if (run) run();
+    else await generateComment(`benchmark type invalid: ${benchmarkType}`);
   } catch (e) {
-    generateComment(e.toString(), pullNumber);
+    await generateComment(e.toString(), pullNumber);
   } finally {
     console.log(await terminateInstance());
   }
