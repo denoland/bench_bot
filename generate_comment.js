@@ -155,6 +155,6 @@ if (import.meta.main) {
   } catch (e) {
     await generateComment(e.toString(), pullNumber);
   } finally {
-    //console.log(await terminateInstance());
+    console.log(await terminateInstance());
   }
 }
