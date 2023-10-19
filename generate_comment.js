@@ -14,13 +14,12 @@ const hyperfineBin =
   `equinix-metal-test/third_party/prebuilt/${osDir}/hyperfine`;
 
 export function svgChart(means) {
-  const body = `
-    <img src="https://quickchart.io/chart?c={type:%27bar%27,data:{labels:${
-    JSON.stringify(Object.keys(means))
-  },datasets:[{label:%27Units%27,data:${
-    JSON.stringify(Object.values(means))
-  }}]}}">
-    </img>
+  const body =
+    `![](https://quickchart.io/chart?c={type:%27bar%27,data:{labels:${
+      JSON.stringify(Object.keys(means))
+    },datasets:[{label:%27Units%27,data:${
+      JSON.stringify(Object.values(means))
+    }}]}})
   `;
   return body;
 }
@@ -120,7 +119,7 @@ async function runHyperfine() {
 
 async function hyperfine() {
   await runHyperfine();
-  const { results } = JSON.stringify(await Deno.readTextFile("hyperfine.json"));
+  const { results } = JSON.parse(await Deno.readTextFile("hyperfine.json"));
   const means = { "deno-main": results[0].mean, "deno-pr": results[1].mean };
   console.log(await generateComment(svgChart(means), pullNumber));
 }
